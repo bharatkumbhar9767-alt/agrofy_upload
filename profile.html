@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - Profile</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 650px;
+    margin: 40px auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    background: #fff;
+  }
+  input, select, textarea {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+  button {
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover { background: #388E3C; }
+  img.preview {
+    max-width: 100%;
+    margin-top: 12px;
+    border-radius: 12px;
+  }
+  #profileDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+</style>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" />
+    <span data-i18="agrofy">Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="index.html" data-i18="home">Home</a>
+    <a href="products.html" data-i18="products">Products & Services</a>
+    <a href="contact.html" data-i18="contact">Contact</a>
+    <a href="login.html" id="loginLink" data-i18="loginBtn">Login</a>
+    <a href="register.html" id="registerLink" data-i18="registerNow">Register</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h2 id="profileHeading" data-i18="profileHeading">Your Profile</h2>
+
+  <!-- Show details if profile_complete = yes -->
+  <div id="profileDetails" style="display:none;">
+    <h3 data-i18="profileDetailsHeading">Profile Details</h3>
+    <p><strong data-i18="fullName">Full Name:</strong> <span id="detailFullName"></span></p>
+    <p><strong data-i18="userType">User Type:</strong> <span id="detailUserType"></span></p>
+    <p><strong data-i18="email">Email:</strong> <span id="detailEmail"></span></p>
+    <p><strong data-i18="phone">Phone:</strong> <span id="detailPhone"></span></p>
+    <p><strong data-i18="state">State:</strong> <span id="detailState"></span></p>
+    <p><strong data-i18="district">District:</strong> <span id="detailDistrict"></span></p>
+    <p><strong data-i18="pincode">Pincode:</strong> <span id="detailPincode"></span></p>
+    <p><strong data-i18="address">Address:</strong> <span id="detailAddress"></span></p>
+    <p><strong data-i18="farmSize">Farm Size:</strong> <span id="detailFarmSize"></span></p>
+    <p><strong data-i18="vehicleNumber">Vehicle Number:</strong> <span id="detailVehicle"></span></p>
+    <p><strong data-i18="licenseNumber">License Number:</strong> <span id="detailLicense"></span></p>
+    <p><strong data-i18="verified">Verified:</strong> <span id="detailVerified"></span></p>
+    <button id="editProfileBtn" data-i18="editProfileBtn">Edit Profile</button>
+  </div>
+
+  <!-- Show form if profile incomplete -->
+  <form id="profileForm" style="display:none;">
+    <label data-i18="fullNameLabel">Full Name:</label>
+    <input type="text" id="fullName" required>
+
+    <label data-i18="userTypeLabel">User Type:</label>
+    <input type="text" id="userType" disabled>
+
+    <label data-i18="phoneLabel">Phone Number:</label>
+    <input type="tel" id="phone" pattern="[0-9]{10}" />
+
+    <label data-i18="stateLabel">State:</label>
+    <input type="text" id="state">
+
+    <label data-i18="districtLabel">District:</label>
+    <input type="text" id="district">
+
+    <label data-i18="pincodeLabel">Pincode:</label>
+    <input type="text" id="pincode" maxlength="6">
+
+    <label data-i18="addressLabel">Full Address:</label>
+    <textarea id="address"></textarea>
+
+    <label data-i18="farmSizeLabel">Farm Size (acres):</label>
+    <input type="number" id="farm_size" min="0" step="0.01">
+
+    <label data-i18="vehicleLabel">Vehicle Number:</label>
+    <input type="text" id="vehicle">
+
+    <label data-i18="licenseLabel">License Number:</label>
+    <input type="text" id="license">
+
+    <label data-i18="idTypeLabel">ID Type:</label>
+    <select id="idType" required>
+      <option value="" data-i18="selectIdType">-- Select ID Type --</option>
+      <option value="Government Document" data-i18="governmentDoc">Government Document</option>
+      <option value="Self Declaration" data-i18="selfDeclaration">Self Declaration</option>
+    </select>
+
+    <label data-i18="uploadDocLabel">Upload Verification Document:</label>
+    <input type="file" id="govIdImage" accept="image/*,application/pdf" />
+    <img id="docPreview" class="preview" style="display:none;" />
+
+    <button type="submit" data-i18="saveProfileBtn">Save Profile</button>
+  </form>
+</div>
+
+<script src="userStatus.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  const translations = {
+    en:{ agrofy:"Agrofy", home:"Home", products:"Products & Services", contact:"Contact", loginBtn:"Login", registerNow:"Register",
+      profileHeading:"Your Profile", profileDetailsHeading:"Profile Details", editProfileBtn:"Edit Profile",
+      fullName:"Full Name:", userType:"User Type:", email:"Email:", phone:"Phone:", state:"State:", district:"District:",
+      pincode:"Pincode:", address:"Address:", farmSize:"Farm Size:", vehicleNumber:"Vehicle Number:", licenseNumber:"License Number:", verified:"Verified:",
+      fullNameLabel:"Full Name:", userTypeLabel:"User Type:", phoneLabel:"Phone Number:", stateLabel:"State:", districtLabel:"District:",
+      pincodeLabel:"Pincode:", addressLabel:"Full Address:", farmSizeLabel:"Farm Size (acres):", vehicleLabel:"Vehicle Number:", licenseLabel:"License Number:",
+      idTypeLabel:"ID Type:", selectIdType:"-- Select ID Type --", governmentDoc:"Government Document", selfDeclaration:"Self Declaration",
+      uploadDocLabel:"Upload Verification Document:", saveProfileBtn:"Save Profile"
+    },
+    hi:{ agrofy:"एग्रोफाई", home:"होम", products:"उत्पाद और सेवाएँ", contact:"संपर्क", loginBtn:"लॉगिन", registerNow:"रजिस्टर",
+      profileHeading:"आपकी प्रोफ़ाइल", profileDetailsHeading:"प्रोफ़ाइल विवरण", editProfileBtn:"प्रोफ़ाइल संपादित करें",
+      fullName:"पूरा नाम:", userType:"उपयोगकर्ता प्रकार:", email:"ईमेल:", phone:"फ़ोन:", state:"राज्य:", district:"जिला:",
+      pincode:"पिनकोड:", address:"पता:", farmSize:"कृषि क्षेत्र:", vehicleNumber:"वाहन नंबर:", licenseNumber:"लाइसेंस नंबर:", verified:"सत्यापित:",
+      fullNameLabel:"पूरा नाम:", userTypeLabel:"उपयोगकर्ता प्रकार:", phoneLabel:"फ़ोन नंबर:", stateLabel:"राज्य:", districtLabel:"जिला:",
+      pincodeLabel:"पिनकोड:", addressLabel:"पूरा पता:", farmSizeLabel:"कृषि क्षेत्र (एकड़):", vehicleLabel:"वाहन नंबर:", licenseLabel:"लाइसेंस नंबर:",
+      idTypeLabel:"आईडी प्रकार:", selectIdType:"-- आईडी प्रकार चुनें --", governmentDoc:"सरकारी दस्तावेज़", selfDeclaration:"स्वयं घोषणा",
+      uploadDocLabel:"सत्यापन दस्तावेज़ अपलोड करें:", saveProfileBtn:"प्रोफ़ाइल सहेजें"
+    },
+    mr:{ agrofy:"अ‍ॅग्रोफाय", home:"मुख्यपृष्ठ", products:"उत्पाद आणि सेवा", contact:"संपर्क", loginBtn:"लॉगिन", registerNow:"नोंदणी",
+      profileHeading:"आपली प्रोफाइल", profileDetailsHeading:"प्रोफाइल तपशील", editProfileBtn:"प्रोफाइल संपादित करा",
+      fullName:"पूर्ण नाव:", userType:"वापरकर्त्याचा प्रकार:", email:"ईमेल:", phone:"फोन:", state:"राज्य:", district:"जिल्हा:",
+      pincode:"पिनकोड:", address:"पत्ता:", farmSize:"शेत क्षेत्र:", vehicleNumber:"वाहन क्रमांक:", licenseNumber:"परवाना क्रमांक:", verified:"सत्यापित:",
+      fullNameLabel:"पूर्ण नाव:", userTypeLabel:"वापरकर्त्याचा प्रकार:", phoneLabel:"फोन क्रमांक:", stateLabel:"राज्य:", districtLabel:"जिल्हा:",
+      pincodeLabel:"पिनकोड:", addressLabel:"पूर्ण पत्ता:", farmSizeLabel:"शेतक्षेत्र (एकर):", vehicleLabel:"वाहन क्रमांक:", licenseLabel:"परवाना क्रमांक:",
+      idTypeLabel:"ओळख प्रकार:", selectIdType:"-- ओळख प्रकार निवडा --", governmentDoc:"शासकीय दस्तऐवज", selfDeclaration:"स्वतःची घोषणा",
+      uploadDocLabel:"सत्यापन दस्तऐवज अपलोड करा:", saveProfileBtn:"प्रोफाइल जतन करा"
+    }
+  };
+
+  let lang = sessionStorage.getItem('lang') || 'en';
+
+  function applyTranslations(){
+    document.querySelectorAll('[data-i18]').forEach(el=>{
+      const key = el.getAttribute('data-i18');
+      if(translations[lang][key]) el.textContent = translations[lang][key];
+    });
+  }
+  applyTranslations();
+
+  if(window.Agrofy?.setLang){
+    const oldSetLang = window.Agrofy.setLang;
+    window.Agrofy.setLang = function(newLang){
+      oldSetLang(newLang);
+      lang = newLang;
+      applyTranslations();
+    };
+  }
+
+  // =================== PROFILE LOGIC ===================
+  async function initProfile(){
+    const USER_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+    const email = localStorage.getItem("userEmail");
+    if(!email){ alert("Please login first."); location.href="login.html"; return; }
+
+    if(window.Agrofy?.updateNav) window.Agrofy.updateNav();
+
+    let user = null;
+    try{
+      const res = await fetch(`${USER_API}?action=getUsers`);
+      const data = await res.json();
+      if(data.status === "success"){
+        user = data.users.find(u=>u.email === email);
+      }
+    }catch(err){ console.error(err); }
+
+    if(!user) showProfileForm({});
+    else if(user.profile_complete==="yes") showProfileDetails(user);
+    else{ fillProfileForm(user); showProfileForm(); }
+
+    document.getElementById("editProfileBtn")?.addEventListener("click", ()=>{
+      fillProfileForm(user); showProfileForm();
+    });
+
+    document.getElementById("govIdImage").addEventListener("change", e=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        const preview = document.getElementById("docPreview");
+        preview.src = file.type.startsWith("image/") ? ev.target.result : "pdf_icon.png";
+        preview.style.display="block";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    async function uploadToCloudinary(file){
+      const cloudName="dnqrx3gny", uploadPreset="agrofy_upload";
+      const formData = new FormData();
+      formData.append("file", file); formData.append("upload_preset", uploadPreset);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, { method:"POST", body:formData });
+      const data = await res.json(); return data.secure_url;
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", async e=>{
+      e.preventDefault();
+      const fullName = document.getElementById("fullName").value.trim();
+      const type = document.getElementById("userType").value;
+      const phone = document.getElementById("phone").value.trim();
+      const state = document.getElementById("state").value.trim();
+      const district = document.getElementById("district").value.trim();
+      const pincode = document.getElementById("pincode").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const farm_size = document.getElementById("farm_size").value.trim();
+      const vehicle = document.getElementById("vehicle").value.trim();
+      const license = document.getElementById("license").value.trim();
+      const file = document.getElementById("govIdImage").files[0];
+      if(!file){ alert("Please upload a verification document."); return; }
+
+      try{
+        const documentUrl = await uploadToCloudinary(file);
+        const params = { action:"updateProfile", email, fullName, type, phone, state, district, pincode, address, farm_size, vehicle, license, document:documentUrl };
+        const query = new URLSearchParams(params).toString();
+        const res = await fetch(`${USER_API}?${query}`);
+        const data = await res.json();
+        if(data.status==="success"){ alert("Profile saved successfully! Awaiting admin verification."); location.reload(); }
+        else alert("Failed: "+(data.message||"Unknown error"));
+      }catch(err){ console.error(err); alert("Error uploading or saving profile."); }
+    });
+
+    function showProfileDetails(user){
+      document.getElementById("profileDetails").style.display="block";
+      document.getElementById("profileForm").style.display="none";
+      document.getElementById("profileHeading").textContent="Your Profile";
+      document.getElementById("detailFullName").textContent=user.fullName||"";
+      document.getElementById("detailUserType").textContent=user.type||"";
+      document.getElementById("detailEmail").textContent=user.email||"";
+      document.getElementById("detailPhone").textContent=user.phone||"";
+      document.getElementById("detailState").textContent=user.state||"";
+      document.getElementById("detailDistrict").textContent=user.district||"";
+      document.getElementById("detailPincode").textContent=user.pincode||"";
+      document.getElementById("detailAddress").textContent=user.address||"";
+      document.getElementById("detailFarmSize").textContent=user.farm_size||"";
+      document.getElementById("detailVehicle").textContent=user.vehicle||"";
+      document.getElementById("detailLicense").textContent=user.license||"";
+      document.getElementById("detailVerified").textContent=user.verified||"no";
+    }
+
+    function fillProfileForm(user){
+      document.getElementById("fullName").value=user.fullName||"";
+      document.getElementById("userType").value=user.type||"";
+      document.getElementById("phone").value=user.phone||"";
+      document.getElementById("state").value=user.state||"";
+      document.getElementById("district").value=user.district||"";
+      document.getElementById("pincode").value=user.pincode||"";
+      document.getElementById("address").value=user.address||"";
+      document.getElementById("farm_size").value=user.farm_size||"";
+      document.getElementById("vehicle").value=user.vehicle||"";
+      document.getElementById("license").value=user.license||"";
+    }
+
+    function showProfileForm(){
+      document.getElementById("profileDetails").style.display="none";
+      document.getElementById("profileForm").style.display="block";
+      document.getElementById("profileHeading").textContent="Complete Your Profile";
+    }
+  }
+
+  initProfile();
+});
+</script>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3 data-i18="footerAboutTitle">About Agrofy</h3>
+      <p data-i18="footerAboutText">
+        Agrofy connects farmers, buyers, and transporters for seamless trade of fresh agricultural products and services.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3 data-i18="footerQuickLinks">Quick Links</h3>
+      <ul>
+        <li><a href="contact.html" data-i18="contact">Contact</a></li>
+        <li><a href="faq.html" data-i18="faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-social">
+      <h3 data-i18="footerFollowUs">Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384005.png" alt="Facebook" /></a>
+        <a href="https://twitter.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" alt="Twitter" /></a>
+        <a href="https://instagram.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3955/3955024.png" alt="Instagram" /></a>
+        <a href="https://youtube.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3670/3670147.png" alt="YouTube" /></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> Agrofy. <span data-i18="footerRights">All rights reserved.</span></p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

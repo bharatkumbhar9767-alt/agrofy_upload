@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy JSONP Login Test</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  label, input, button { display: block; margin: 12px 0; }
+  input, button { padding: 8px; width: 300px; }
+  #log { margin-top: 20px; border: 1px solid #ccc; padding: 10px; white-space: pre-wrap; max-width: 600px; height: 200px; overflow-y: scroll; background: #f9f9f9; }
+</style>
+</head>
+<body>
+
+<h2>Agrofy JSONP Login Test</h2>
+<label for="email">Email</label>
+<input type="email" id="email" placeholder="Enter email" />
+<label for="password">Password</label>
+<input type="password" id="password" placeholder="Enter password" />
+<button id="loginBtn">Login</button>
+
+<h3>Logs</h3>
+<pre id="log"></pre>
+
+<script>
+const USER_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+
+function log(text) {
+  const logEl = document.getElementById('log');
+  logEl.textContent += text + '\\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function cleanupScript(tagId) {
+  const oldScript = document.getElementById(tagId);
+  if(oldScript) oldScript.remove();
+}
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+
+  if(!email || !password){
+    alert('Please enter email and password');
+    return;
+  }
+
+  log(`Starting JSONP login for "${email}"`);
+
+  const callbackName = 'loginCallback';
+
+  // Cleanup old script tag if any
+  cleanupScript('jsonpScript');
+
+  // Define the global JSONP callback
+  window[callbackName] = function(data){
+    log('JSONP callback received data: ' + JSON.stringify(data, null, 2));
+    if(!data.user){
+      alert('Invalid credentials or account not verified.');
+      log('Login failed: user not found inside JSONP response');
+      return;
+    }
+    alert(`Welcome, ${data.user.name || data.user.email}!`);
+    // Store locally if needed
+    localStorage.setItem('userEmail', data.user.email);
+    localStorage.setItem('userType', data.user.type || '');
+    localStorage.setItem('verified', data.user.verified || 'no');
+    sessionStorage.setItem('userName', data.user.name || '');
+    sessionStorage.setItem('profile_complete', data.user.profile_complete || 'no');
+  };
+
+  // Create script tag for JSONP request
+  const script = document.createElement('script');
+  script.src = `${USER_API}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&callback=${callbackName}`;
+  script.id = 'jsonpScript';
+  script.onerror = function(){
+    alert('Login failed - network or server error.');
+    log('JSONP script load error');
+  };
+
+  document.body.appendChild(script);
+});
+</script>
+
+</body>
+</html>

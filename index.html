@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - Home</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  /* Bottom cart tab */
+  #cartTab {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 900;
+    background: #4caf50;
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    z-index: 1000;
+  }
+
+  #cartList {
+    display: none;
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 10px;
+  }
+
+  #cartList h4 {
+    margin-top: 0;
+  }
+
+  #cartList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #cartList ul li {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #cartList ul li:last-child {
+    border-bottom: none;
+  }
+
+  #cartList button.remove-btn {
+    background: #f44336;
+    color: #fff;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+
+  #cartList button.remove-btn:hover {
+    background: #d32f2f;
+  }
+
+  .cart-btn {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .cart-btn:hover {
+    background: #388e3c;
+  }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" />
+    <span>Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="index.html" data-i18="home">Home</a>
+    <a href="products.html" data-i18="products">Products & Services</a>
+    <a href="contact.html" data-i18="contact">Contact</a>
+    <a href="login.html" id="loginLink" data-i18="loginBtn">Login</a>
+    <a href="register.html" id="registerLink" data-i18="registerNow">Register</a>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h1 data-i18="welcomeAgrofy">🌾 Welcome to Agrofy</h1>
+    <img src="https://media.canva.com/v2/image-resize/format:PNG/height:200/quality:100/uri:ifs%3A%2F%2FM%2Fc821b7ba-6597-47cb-ad25-415b61db928f/watermark:F/width:200?csig=AAAAAAAAAAAAAAAAAAAAAIiDCJFoDaw5Yf0Viqm-EL6YM2R1rJUpZJZMXdBYWl25&exp=1760128019&osig=AAAAAAAAAAAAAAAAAAAAALfMZj_I7SmgdMEvhp3HWbqdCr6nKNZDSdrv0g1tw8Io&signer=media-rpc&x-canva-quality=thumbnail" alt="LOGO" />
+    <p data-i18="empoweringText">
+      Empowering farmers and connecting buyers with fresh, quality agricultural products and services.
+    </p>
+  </div>
+  <div id="productGrid" class="grid"></div>
+</div>
+
+<!-- Cart UI -->
+<div id="cartTab">🛒 View Cart</div>
+<div id="cartList">
+  <h4>Your Cart</h4>
+  <ul id="cartItems"></ul>
+</div>
+
+<script src="userStatus.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const checkAgrofy = setInterval(() => {
+    if (window.Agrofy && Agrofy.setLang && Agrofy.getLang) {
+      clearInterval(checkAgrofy);
+      const lang = Agrofy.getLang ? Agrofy.getLang() : "en";
+
+      if (!window.translations) window.translations = {};
+      const t = window.translations;
+
+      // Hero & Add to Cart translations
+      t.en = { ...(t.en || {}), 
+        welcomeAgrofy: "🌾 Welcome to Agrofy",
+        empoweringText: "Empowering farmers and connecting buyers with fresh, quality agricultural products and services.",
+        addToCart: "Add to Cart",
+        cartEmpty: "Cart is empty"
+      };
+      t.hi = { ...(t.hi || {}), 
+        welcomeAgrofy: "🌾 एग्रोफाई में आपका स्वागत है",
+        empoweringText: "किसानों को सशक्त बनाना और खरीदारों को ताज़ा, उच्च गुणवत्ता वाले कृषि उत्पादों और सेवाओं से जोड़ना।",
+        addToCart: "कार्ट में जोड़ें",
+        cartEmpty: "कार्ट खाली है"
+      };
+      t.mr = { ...(t.mr || {}), 
+        welcomeAgrofy: "🌾 अ‍ॅग्रोफाय मध्ये आपले स्वागत आहे",
+        empoweringText: "शेतकऱ्यांना सक्षम बनवणे आणि खरेदीदारांना ताज्या, दर्जेदार कृषी उत्पादनांशी जोडणे.",
+        addToCart: "कार्टमध्ये जोडा",
+        cartEmpty: "कार्ट रिक्त आहे"
+      };
+
+      const oldSetLang = Agrofy.setLang;
+      Agrofy.setLang = function(newLang) {
+        oldSetLang(newLang);
+        applyHeroTranslations(newLang);
+        updateCartUI();
+        displayProducts(lastProducts || []);
+      };
+
+      applyHeroTranslations(lang);
+    }
+  }, 100);
+
+  function applyHeroTranslations(lang) {
+    document.querySelectorAll("[data-i18]").forEach(el => {
+      const key = el.getAttribute("data-i18");
+      if (window.translations[lang] && window.translations[lang][key]) {
+        el.textContent = window.translations[lang][key];
+      }
+    });
+  }
+});
+
+// --- Products ---
+const PRODUCT_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+let lastProducts = [];
+
+function jsonpCall(url, callbackName) {
+  return new Promise((resolve, reject) => {
+    window[callbackName] = (data) => {
+      resolve(data);
+      delete window[callbackName];
+      script.remove();
+    };
+    const script = document.createElement("script");
+    script.src = `${url}&callback=${callbackName}`;
+    script.onerror = () => reject(new Error("JSONP request failed"));
+    document.body.appendChild(script);
+  });
+}
+
+async function loadProducts() {
+  try {
+    const data = await jsonpCall(`${PRODUCT_API}?action=getProducts`, "handleLoadProducts");
+    if (data.status === "success") {
+      lastProducts = data.products;
+      displayProducts(data.products);
+    } else {
+      document.getElementById("productGrid").innerHTML = `<p>${data.message}</p>`;
+    }
+  } catch (err) {
+    document.getElementById("productGrid").innerHTML = "<p>Error loading products</p>";
+  }
+}
+
+function displayProducts(products) {
+  const container = document.getElementById("productGrid");
+  container.innerHTML = "";
+
+  const verified = localStorage.getItem("verified") === "yes";
+  const userEmail = localStorage.getItem("userEmail");
+
+  products.filter(p => p.verified === "yes").forEach(p => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <img src="${p.images}" alt="${p.name}" 
+           onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'"/>
+      <h3>${p.name}</h3>
+      <p>Type: ${p.type}</p>
+      <p>${p.description}</p>
+      <p>Qty: ${p.quantity} | ₹${p.price}</p>
+      <p>Seller: ${p.userName || "Unknown"}</p>
+    `;
+
+    if (userEmail && verified) {
+      const btn = document.createElement("button");
+      const lang = sessionStorage.getItem("lang") || "en";
+      btn.textContent = window.translations?.[lang]?.addToCart || "Add to Cart";
+      btn.className = "cart-btn";
+      btn.addEventListener("click", () => addToCart(p));
+      div.appendChild(btn);
+    }
+
+    container.appendChild(div);
+  });
+}
+
+// --- Cart ---
+const cartTab = document.getElementById("cartTab");
+const cartList = document.getElementById("cartList");
+const cartItems = document.getElementById("cartItems");
+
+cartTab.addEventListener("click", () => {
+  cartList.style.display = cartList.style.display === "block" ? "none" : "block";
+  updateCartUI();
+});
+
+function addToCart(product) {
+  let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  cart.push(product);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert("✅ Product added to cart!");
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const lang = sessionStorage.getItem("lang") || "en";
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  cartItems.innerHTML = "";
+
+  if (cart.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = window.translations?.[lang]?.cartEmpty || "Cart is empty";
+    cartItems.appendChild(li);
+    return;
+  }
+
+  cart.forEach((p, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${p.name}</span> <span>₹${p.price}</span>`;
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "✖";
+    removeBtn.addEventListener("click", () => {
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      updateCartUI();
+    });
+    li.appendChild(removeBtn);
+    cartItems.appendChild(li);
+  });
+}
+
+// Load products
+loadProducts();
+</script>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3 data-i18="footerAboutTitle">About Agrofy</h3>
+      <p data-i18="footerAboutText">
+        Agrofy connects farmers, buyers, and transporters for seamless trade of fresh agricultural products and services.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3 data-i18="footerQuickLinks">Quick Links</h3>
+      <ul>
+        <li><a href="contact.html" data-i18="contact">Contact</a></li>
+        <li><a href="faq.html" data-i18="faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-social">
+      <h3 data-i18="footerFollowUs">Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384005.png" alt="Facebook" /></a>
+        <a href="https://twitter.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" alt="Twitter" /></a>
+        <a href="https://instagram.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3955/3955024.png" alt="Instagram" /></a>
+        <a href="https://youtube.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3670/3670147.png" alt="YouTube" /></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> Agrofy. <span data-i18="footerRights">All rights reserved.</span></p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

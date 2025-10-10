@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - Admin Panel</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+table{border-collapse:collapse;width:100%;}
+th,td{border:1px solid #ccc;padding:8px;text-align:left;}
+button{margin-right:5px;padding:5px 10px;cursor:pointer;}
+</style>
+</head>
+<body>
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" />
+    <span>Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="index.html" data-i18="home">Home</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h2>Admin Panel</h2>
+  <div id="usersList"></div>
+  <div id="productsList" style="margin-top:30px;"></div>
+</div>
+
+<script src="userStatus.js"></script>
+<script>
+const USER_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+const PRODUCT_API = USER_API;
+
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+  localStorage.clear();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+});
+
+function jsonpCall(url, callbackName) {
+  return new Promise((resolve, reject) => {
+    window[callbackName] = (data) => {
+      resolve(data);
+      delete window[callbackName];
+      script.remove();
+    };
+    const script = document.createElement("script");
+    script.src = `${url}&callback=${callbackName}`;
+    script.onerror = () => reject(new Error("JSONP request failed"));
+    document.body.appendChild(script);
+  });
+}
+
+async function loadUsers() {
+  try {
+    const data = await jsonpCall(`${USER_API}?action=getUsers`, "handleGetUsersResponse");
+    if (data.status === "success" && data.users) {
+      let html = '<h3>All Users</h3><table><thead><tr><th>Name</th><th>Email</th><th>Type</th><th>Verified</th><th>Actions</th></tr></thead><tbody>';
+      data.users.forEach((u) => {
+        html += `<tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.type}</td>
+          <td>${u.verified}</td>
+          <td>
+            ${u.verified === "no" ? `<button onclick="verifyUser('${u.email}')">Verify</button>` : ""}
+            <button onclick="deleteUser('${u.email}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      document.getElementById("usersList").innerHTML = html;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function verifyUser(email) {
+  if (!confirm(`Verify user ${email}?`)) return;
+  try {
+    const data = await jsonpCall(`${USER_API}?action=verifyUser&email=${encodeURIComponent(email)}`, "handleVerifyUserResponse");
+    alert(data.message);
+    loadUsers();
+  } catch {
+    alert("Verification failed");
+  }
+}
+
+async function deleteUser(email) {
+  if (!confirm(`Delete user ${email}?`)) return;
+  try {
+    const data = await jsonpCall(`${USER_API}?action=deleteUser&email=${encodeURIComponent(email)}`, "handleDeleteUserResponse");
+    alert(data.message);
+    loadUsers();
+  } catch {
+    alert("Delete failed");
+  }
+}
+
+async function loadProducts() {
+  try {
+    const data = await jsonpCall(`${PRODUCT_API}?action=getProducts`, "handleGetProductsResponse");
+    if (data.status === "success" && data.products) {
+      let html = '<h3>All Products/Services</h3><table><thead><tr><th>Name</th><th>Type</th><th>Price</th><th>Quantity</th><th>User Name</th><th>Verified</th><th>Actions</th></tr></thead><tbody>';
+      data.products.forEach((p) => {
+        html += `<tr>
+          <td>${p.name}</td>
+          <td>${p.type}</td>
+          <td>${p.price}</td>
+          <td>${p.quantity}</td>
+          <td>${p.userName || "Unknown"}</td>
+          <td>${p.verified}</td>
+          <td>
+            ${p.verified === "no" ? `<button onclick="verifyProduct('${p.name}')">Verify</button>` : "yes"}
+            <button onclick="deleteProduct('${p.name}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      document.getElementById("productsList").innerHTML = html;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function verifyProduct(name) {
+  if (!confirm(`Verify product "${name}"?`)) return;
+  try {
+    const data = await jsonpCall(`${PRODUCT_API}?action=verifyProduct&name=${encodeURIComponent(name)}`, "handleVerifyProductResponse");
+    alert(data.message);
+    loadProducts();
+  } catch {
+    alert("Verification failed");
+  }
+}
+
+async function deleteProduct(name) {
+  if (!confirm(`Delete product "${name}"?`)) return;
+  try {
+    const data = await jsonpCall(`${PRODUCT_API}?action=deleteProduct&name=${encodeURIComponent(name)}`, "handleDeleteProductResponse");
+    alert(data.message);
+    loadProducts();
+  } catch {
+    alert("Delete failed");
+  }
+}
+
+loadUsers();
+loadProducts();
+</script>
+</body>
+</html>

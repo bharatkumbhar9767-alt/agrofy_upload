@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - Register</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .conditional-field {
+    display: none;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" /><span>Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="login.html" data-i18="loginBtn">Login</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h2 data-i18="registerTitle" style="text-align:center;margin-top:20px">Register</h2>
+  <form id="registerForm" style="max-width:480px;margin:10px auto;">
+    <input type="text" id="name" data-i18-placeholder="namePlaceholder" placeholder="Name" required />
+<input type="email" id="email" data-i18-placeholder="emailPlaceholder" placeholder="Email" required />
+<input type="password" id="password" data-i18-placeholder="passwordPlaceholder" placeholder="Password" required />
+
+<select id="type" required>
+  <option value="" data-i18="selectType">-- Select User Type --</option>
+  <option value="buyer" data-i18="buyerOption">Buyer</option>
+  <option value="farmer" data-i18="farmerOption">Farmer</option>
+  <option value="transport" data-i18="transportOption">Transport</option>
+</select>
+
+<input type="text" id="phone" data-i18-placeholder="phonePlaceholder" placeholder="Phone" />
+<input type="text" id="address" data-i18-placeholder="addressPlaceholder" placeholder="Address" />
+
+<div id="farmSizeSection" class="conditional-field">
+  <input type="text" id="farm_size" data-i18-placeholder="farmSizePlaceholder" placeholder="Farm size (optional)" />
+</div>
+
+<div id="businessSection" class="conditional-field">
+  <input type="text" id="business" data-i18-placeholder="businessPlaceholder" placeholder="Business (optional)" />
+</div>
+
+<div id="transportSection" class="conditional-field">
+  <input type="text" id="vehicle" data-i18-placeholder="vehiclePlaceholder" placeholder="Vehicle (optional)" />
+  <input type="text" id="license" data-i18-placeholder="licensePlaceholder" placeholder="License (optional)" />
+</div>
+
+<button type="submit" data-i18="registerBtn">Register</button>
+  </form>
+</div>
+
+<script src="userStatus.js"></script>
+<script>
+const USER_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+
+function jsonpCall(url, callbackName) {
+  return new Promise((resolve, reject) => {
+    window[callbackName] = (data) => {
+      resolve(data);
+      delete window[callbackName];
+      script.remove();
+    };
+    const script = document.createElement('script');
+    script.src = `${url}&callback=${callbackName}`;
+    script.onerror = () => reject(new Error('JSONP request failed'));
+    document.body.appendChild(script);
+  });
+}
+
+const userTypeSelect = document.getElementById('type');
+const farmSizeSection = document.getElementById('farmSizeSection');
+const businessSection = document.getElementById('businessSection');
+const transportSection = document.getElementById('transportSection');
+
+function updateConditionalFields() {
+  const selectedType = userTypeSelect.value;
+  farmSizeSection.style.display = (selectedType === 'farmer') ? 'block' : 'none';
+  businessSection.style.display = (selectedType === 'buyer') ? 'block' : 'none';
+  transportSection.style.display = (selectedType === 'transport') ? 'block' : 'none';
+}
+
+updateConditionalFields();
+
+userTypeSelect.addEventListener('change', updateConditionalFields);
+
+document.getElementById('registerForm').onsubmit = async function(e) {
+  e.preventDefault();
+
+  const userObj = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value.trim(),
+    type: userTypeSelect.value,
+    phone: document.getElementById('phone').value.trim(),
+    address: document.getElementById('address').value.trim(),
+    farm_size: document.getElementById('farm_size').value.trim(),
+    business: document.getElementById('business').value.trim(),
+    vehicle: document.getElementById('vehicle').value.trim(),
+    license: document.getElementById('license').value.trim(),
+  };
+
+  const params = new URLSearchParams({
+    action: "register",
+    ...userObj,
+    profile_complete: "no",
+    verified: "no"
+  }).toString();
+
+  try {
+    const data = await jsonpCall(`${USER_API}?${params}`, 'handleRegisterResponse');
+    if (data.status === 'success') {
+      alert('Registration successful! Please login.');
+      window.location.href = 'login.html';
+    } else {
+      alert(data.message || 'Registration failed');
+    }
+  } catch (err) {
+    alert('Error during registration');
+  }
+};
+</script>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3 data-i18="footerAboutTitle">About Agrofy</h3>
+      <p data-i18="footerAboutText">
+        Agrofy connects farmers, buyers, and transporters for seamless trade of fresh agricultural products and services.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3 data-i18="footerQuickLinks">Quick Links</h3>
+      <ul>
+        <li><a href="contact.html" data-i18="contact">Contact</a></li>
+        <li><a href="faq.html" data-i18="faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-social">
+      <h3 data-i18="footerFollowUs">Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384005.png" alt="Facebook" /></a>
+        <a href="https://twitter.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" alt="Twitter" /></a>
+        <a href="https://instagram.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3955/3955024.png" alt="Instagram" /></a>
+        <a href="https://youtube.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3670/3670147.png" alt="YouTube" /></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> Agrofy. <span data-i18="footerRights">All rights reserved.</span></p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

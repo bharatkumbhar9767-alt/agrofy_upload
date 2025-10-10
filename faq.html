@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - FAQ</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .faq-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+
+  .faq-item {
+    background: #a7fb7e;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .faq-item:hover {
+    background: #baf1ba;
+  }
+
+  .faq-question {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+
+  .faq-answer {
+    display: none;
+    margin-top: 10px;
+    color: #333;
+  }
+
+  .faq-item.active .faq-answer {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" /><span>Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="index.html" data-i18="home">Home</a>
+    <a href="products.html" data-i18="products">Products & Services</a>
+    <a href="contact.html" data-i18="contact">Contact</a>
+    <a href="faq.html" data-i18="faq">FAQ</a>
+    <a href="login.html" id="loginLink" data-i18="loginBtn">Login</a>
+  </nav>
+</header>
+
+<div class="faq-container">
+  <h2 style="text-align:center;" data-i18="faqTitle">Frequently Asked Questions</h2>
+
+  <div class="faq-item">
+    <div class="faq-question" data-i18="faq1q">Who can register on Agrofy?</div>
+    <div class="faq-answer" data-i18="faq1a">Farmers, buyers, and transport providers can register on Agrofy to connect and grow their business.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question" data-i18="faq2q">How do I upload my products?</div>
+    <div class="faq-answer" data-i18="faq2a">After login, verified users can go to the upload page, fill details, and submit for admin verification.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question" data-i18="faq3q">Is Agrofy free to use?</div>
+    <div class="faq-answer" data-i18="faq3a">Yes, Agrofy is completely free for all users to register, connect, and explore services.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question" data-i18="faq4q">How can I contact support?</div>
+    <div class="faq-answer" data-i18="faq4a">You can visit our Contact page or send an email through the contact form available there.</div>
+  </div>
+</div>
+
+<script src="userStatus.js"></script>
+<script>
+// FAQ Toggle Logic
+document.querySelectorAll(".faq-item").forEach(item => {
+  item.addEventListener("click", () => {
+    item.classList.toggle("active");
+  });
+});
+</script>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3 data-i18="footerAboutTitle">About Agrofy</h3>
+      <p data-i18="footerAboutText">
+        Agrofy connects farmers, buyers, and transporters for seamless trade of fresh agricultural products and services.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3 data-i18="footerQuickLinks">Quick Links</h3>
+      <ul>
+        <li><a href="contact.html" data-i18="contact">Contact</a></li>
+        <li><a href="faq.html" data-i18="faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-social">
+      <h3 data-i18="footerFollowUs">Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384005.png" alt="Facebook" /></a>
+        <a href="https://twitter.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" alt="Twitter" /></a>
+        <a href="https://instagram.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3955/3955024.png" alt="Instagram" /></a>
+        <a href="https://youtube.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3670/3670147.png" alt="YouTube" /></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> Agrofy. <span data-i18="footerRights">All rights reserved.</span></p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

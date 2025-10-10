@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agrofy - Products & Services</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  /* Cart tab */
+  #cartTab {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 1400px;
+    background: #4caf50;
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    z-index: 1000;
+  }
+  #cartList {
+    display: none;
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 10px;
+  }
+  #cartList h4 { margin-top:0; }
+  #cartList ul { list-style:none; padding:0; margin:0; }
+  #cartList ul li {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #cartList ul li:last-child { border-bottom:none; }
+  #cartList button.remove-btn {
+    background: #f44336;
+    color: #fff;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  #cartList button.remove-btn:hover { background: #d32f2f; }
+  .cart-btn {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .cart-btn:hover { background: #388e3c; }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-logo" onclick="window.location.href='index.html'">
+    <img src="logo.jpeg" alt="Agrofy Logo" />
+    <span>Agrofy</span>
+  </div>
+  <nav class="navbar-links">
+    <a href="index.html" data-i18="home">Home</a>
+    <a href="products.html" data-i18="products">Products & Services</a>
+    <a href="contact.html" data-i18="contact">Contact</a>
+    <a href="login.html" id="loginLink" data-i18="loginBtn">Login</a>
+    <a href="register.html" id="registerLink" data-i18="registerNow">Register</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h2 data-i18="products">Products & Services</h2>
+  <!-- Filters -->
+  <div id="filterPanel" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+    <select id="filterType" style="flex:1;min-width:120px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+      <option value="" data-i18="allTypes">All Types</option>
+    </select>
+    <input type="number" id="filterMinPrice" placeholder="Min Price" style="flex:1;min-width:100px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+    <input type="number" id="filterMaxPrice" placeholder="Max Price" style="flex:1;min-width:100px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+    <input type="number" id="filterMinQty" placeholder="Min Qty" style="flex:1;min-width:100px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+    <input type="number" id="filterMaxQty" placeholder="Max Qty" style="flex:1;min-width:100px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+    <input type="text" id="searchBox" placeholder="Search products..." style="flex:2;min-width:180px;padding:10px;border-radius:6px;border:1px solid #ccc;">
+  </div>
+
+  <div id="productList" class="grid"></div>
+</div>
+
+<!-- Cart -->
+<div id="cartTab">🛒 View Cart</div>
+<div id="cartList">
+  <h4>Your Cart</h4>
+  <ul id="cartItems"></ul>
+</div>
+
+<script src="userStatus.js"></script>
+<script>
+const PRODUCT_API = "https://script.google.com/macros/s/AKfycbwAGJsclDN5hMGjQrudkgFbvTwFQMOjzuHWHQaUOZbU7N3wwmLzjbUh51QJXDADmB4qNA/exec";
+let allProducts = [];
+
+// Language translations
+const translations = {
+  en: { addToCart:"Add to Cart", allTypes:"All Types", cartEmpty:"Cart is empty" },
+  hi: { addToCart:"कार्ट में जोड़ें", allTypes:"सभी प्रकार", cartEmpty:"कार्ट खाली है" },
+  mr: { addToCart:"कार्टमध्ये जोडा", allTypes:"सर्व प्रकार", cartEmpty:"कार्ट रिक्त आहे" }
+};
+let lang = sessionStorage.getItem('lang') || 'en';
+
+// --- Load products ---
+async function loadProducts(){
+  try {
+    const res = await fetch(`${PRODUCT_API}?action=getProducts`);
+    const data = await res.json();
+    if(data.status==='success'){
+      allProducts = data.products.filter(p=>p.verified==='yes');
+      populateTypeFilter(allProducts);
+      applyFilters();
+    } else {
+      document.getElementById('productList').innerHTML = `<p>${data.message}</p>`;
+    }
+  } catch(err){
+    console.error(err);
+    document.getElementById('productList').innerHTML='<p>Error loading products</p>';
+  }
+}
+
+// Populate type filter
+function populateTypeFilter(products){
+  const filter = document.getElementById('filterType');
+  const types = [...new Set(products.map(p=>p.type))];
+  types.forEach(type=>{
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = type;
+    filter.appendChild(opt);
+  });
+}
+
+// Apply filters
+function applyFilters(){
+  const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+  const selectedType = document.getElementById('filterType').value;
+  const minPrice = parseFloat(document.getElementById('filterMinPrice').value) || 0;
+  const maxPrice = parseFloat(document.getElementById('filterMaxPrice').value) || Infinity;
+  const minQty = parseInt(document.getElementById('filterMinQty').value) || 0;
+  const maxQty = parseInt(document.getElementById('filterMaxQty').value) || Infinity;
+
+  const filtered = allProducts.filter(p=>{
+    return (!selectedType||p.type===selectedType) &&
+           p.name.toLowerCase().includes(searchTerm) &&
+           p.price>=minPrice && p.price<=maxPrice &&
+           p.quantity>=minQty && p.quantity<=maxQty;
+  });
+  displayProducts(filtered);
+}
+
+// Display products
+function displayProducts(products){
+  const container = document.getElementById('productList');
+  container.innerHTML='';
+  const verified = localStorage.getItem("verified")==='yes';
+  const userEmail = localStorage.getItem("userEmail");
+  if(products.length===0){
+    container.innerHTML=`<p>${translations[lang].cartEmpty}</p>`;
+    return;
+  }
+  products.forEach(p=>{
+    const div = document.createElement('div');
+    div.className='product';
+    div.innerHTML=`
+      <img src="${p.images}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+      <h3>${p.name}</h3>
+      <p>${p.type}</p>
+      <p>${p.description}</p>
+      <p>Qty: ${p.quantity} | ₹${p.price}</p>
+    `;
+    if(userEmail && verified){
+      const btn = document.createElement('button');
+      btn.textContent = translations[lang].addToCart;
+      btn.className='cart-btn';
+      btn.addEventListener('click',()=>addToCart(p));
+      div.appendChild(btn);
+    }
+    container.appendChild(div);
+  });
+}
+
+// Add to cart
+function addToCart(product){
+  let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+  cart.push(product);
+  localStorage.setItem('cart',JSON.stringify(cart));
+  updateCartUI();
+  alert("✅ "+translations[lang].addToCart+"!");
+}
+
+// --- Cart ---
+const cartTab = document.getElementById("cartTab");
+const cartList = document.getElementById("cartList");
+const cartItems = document.getElementById("cartItems");
+
+cartTab.addEventListener("click",()=>{ 
+  cartList.style.display = cartList.style.display==="block"?"none":"block"; 
+  updateCartUI(); 
+});
+
+function updateCartUI(){
+  const cart = JSON.parse(localStorage.getItem('cart')||'[]');
+  cartItems.innerHTML='';
+  if(cart.length===0){
+    const li = document.createElement('li');
+    li.textContent = translations[lang].cartEmpty;
+    cartItems.appendChild(li);
+    return;
+  }
+  cart.forEach((p,i)=>{
+    const li = document.createElement('li');
+    li.innerHTML=`<span>${p.name}</span> <span>₹${p.price}</span>`;
+    const removeBtn = document.createElement('button');
+    removeBtn.className='remove-btn';
+    removeBtn.textContent='✖';
+    removeBtn.addEventListener('click',()=>{
+      cart.splice(i,1);
+      localStorage.setItem('cart',JSON.stringify(cart));
+      updateCartUI();
+    });
+    li.appendChild(removeBtn);
+    cartItems.appendChild(li);
+  });
+}
+
+// --- Attach filter events ---
+['filterType','filterMinPrice','filterMaxPrice','filterMinQty','filterMaxQty','searchBox'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',applyFilters);
+});
+
+// --- Load ---
+loadProducts();
+</script>
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3 data-i18="footerAboutTitle">About Agrofy</h3>
+      <p data-i18="footerAboutText">
+        Agrofy connects farmers, buyers, and transporters for seamless trade of fresh agricultural products and services.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h3 data-i18="footerQuickLinks">Quick Links</h3>
+      <ul>
+        <li><a href="contact.html" data-i18="contact">Contact</a></li>
+        <li><a href="faq.html" data-i18="faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-social">
+      <h3 data-i18="footerFollowUs">Follow Us</h3>
+      <div class="social-icons">
+        <a href="https://facebook.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384005.png" alt="Facebook" /></a>
+        <a href="https://twitter.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" alt="Twitter" /></a>
+        <a href="https://instagram.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3955/3955024.png" alt="Instagram" /></a>
+        <a href="https://youtube.com" target="_blank"><img src="https://cdn-icons-png.flaticon.com/128/3670/3670147.png" alt="YouTube" /></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> Agrofy. <span data-i18="footerRights">All rights reserved.</span></p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
